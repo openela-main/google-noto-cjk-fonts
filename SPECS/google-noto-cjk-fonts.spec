@@ -1,5 +1,5 @@
-%global commit0 782eab531e724779772302b835661b7b12a6b3a8
-%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+%global sans_version 2.004
+%global serif_version 2.002
 
 %global fontname google-noto-cjk
 %global fontconf google-noto
@@ -13,16 +13,29 @@ supported for compatibility with CJK standards. \
 %{nil}
 
 Name:           google-noto-cjk-fonts
-Version:        20201206
-Release:        4%{?dist}
+Version:        20230817
+Release:        2%{?dist}
 Summary:        Google Noto Sans CJK Fonts
 
 License:        OFL
-URL:            https://github.com/googlei18n/noto-cjk
-Source0:        https://github.com/googlei18n/noto-cjk/archive/%{commit0}.tar.gz#/noto-cjk-%{shortcommit0}.tar.gz
-Source1:        genfontconf.py
-Source2:        genfontconf.sh
-Source3:        %{fontconf2}
+URL:            https://github.com/notofonts/noto-cjk
+Source0:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/03_NotoSansCJK-OTC.zip
+Source1:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/04_NotoSansCJK-OTF.zip
+Source2:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/05_NotoSansCJK-SubsetOTF.zip
+Source3:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/11_NotoSansMonoCJKjp.zip
+Source4:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/12_NotoSansMonoCJKkr.zip
+Source5:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/13_NotoSansMonoCJKsc.zip
+Source6:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/14_NotoSansMonoCJKtc.zip
+Source7:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/15_NotoSansMonoCJKhk.zip
+
+Source10:       https://github.com/notofonts/noto-cjk/releases/download/Serif%{serif_version}/04_NotoSerifCJKOTC.zip
+Source12:       https://github.com/notofonts/noto-cjk/releases/download/Serif%{serif_version}/06_NotoSerifCJKSubsetOTF.zip
+
+Source21:       genfontconf.py
+Source22:       genfontconf.sh
+Source23:       %{fontconf2}
+
+Source30:       README.md
 
 BuildArch:      noarch
 BuildRequires:  fontpackages-devel
@@ -98,40 +111,16 @@ The google-noto-%subpkgname-fonts package contains %* fonts. \
 %notocjkpkg -n sans-cjk-jp -f NotoSansCJKjp-*.otf Japanese Multilingual Sans OTF
 
 
-%notocjkpkg -n serif-cjk-jp -f NotoSerifCJKjp-*.otf Japanese Multilingual Serif OTF
-
-
 %notocjkpkg -n sans-mono-cjk-jp -f NotoSansMonoCJKjp-*.otf Japanese Multilingual Sans Mono OTF
-
-
-%notocjkpkg -n sans-cjk-kr -f NotoSansCJKkr-*.otf Korean Multilingual Sans OTF
-
-
-%notocjkpkg -n serif-cjk-kr -f NotoSerifCJKkr-*.otf Korean Multilingual Serif OTF
 
 
 %notocjkpkg -n sans-mono-cjk-kr -f NotoSansMonoCJKkr-*.otf Korean Multilingual Sans Mono OTF
 
 
-%notocjkpkg -n sans-cjk-sc -f NotoSansCJKsc-*.otf Simplified Chinese Multilingual Sans OTF
-
-
-%notocjkpkg -n serif-cjk-sc -f NotoSerifCJKsc-*.otf Simplified Chinese Multilingual Serif OTF
-
-
 %notocjkpkg -n sans-mono-cjk-sc -f NotoSansMonoCJKsc-*.otf Simplified Chinese Multilingual Sans Mono OTF
 
 
-%notocjkpkg -n sans-cjk-tc -f NotoSansCJKtc-*.otf Traditional Chinese Multilingual Sans OTF
-
-
-%notocjkpkg -n serif-cjk-tc -f NotoSerifCJKtc-*.otf Traditional Chinese Multilingual Serif OTF
-
-
 %notocjkpkg -n sans-mono-cjk-tc -f NotoSansMonoCJKtc-*.otf Traditional Chinese Multilingual Sans Mono OTF
-
-
-%notocjkpkg -n sans-cjk-hk -f NotoSansCJKhk-*.otf Traditional Chinese Multilingual Sans OTF
 
 
 %notocjkpkg -n sans-mono-cjk-hk -f NotoSansMonoCJKhk-*.otf Traditional Chinese Multilingual Sans Mono OTF
@@ -165,11 +154,17 @@ The google-noto-%subpkgname-fonts package contains %* fonts. \
 
 
 %prep
-%setup -q -n noto-cjk-%{version}-cjk
-cp -p %{SOURCE1} %{SOURCE2} .
+%setup -q -c
+
+for zipfile in `ls %{SOURCE1} %{SOURCE2} %{SOURCE3} %{SOURCE4} %{SOURCE5} %{SOURCE6} %{SOURCE7} %{SOURCE10} %{SOURCE12}`;
+do unzip -j $zipfile -x LICENSE;
+done
+
+cp -p %{SOURCE21} %{SOURCE22} .
 # generate the font conf files
 bash -x ./genfontconf.sh
 
+cp -p %{SOURCE30} .
 
 %build
 
@@ -182,8 +177,7 @@ install -m 0644 -p NotoSansCJK-*.ttc %{buildroot}%{_fontdir}
 install -m 0644 -p NotoSerifCJK-*.ttc %{buildroot}%{_fontdir}
 
 # copy Multilingual OTF files
-install -m 0644 -p NotoSansCJK{jp,kr,sc,tc,hk}-*.otf %{buildroot}%{_fontdir}
-install -m 0644 -p NotoSerifCJK{jp,kr,sc,tc}-*.otf %{buildroot}%{_fontdir}
+install -m 0644 -p NotoSansCJKjp-*.otf %{buildroot}%{_fontdir}
 install -m 0644 -p NotoSansMonoCJK{jp,kr,sc,tc,hk}-*.otf %{buildroot}%{_fontdir}
 
 # copy Region-specific OTF
@@ -195,11 +189,11 @@ install -m 0755 -d %{buildroot}%{_fontconfig_templatedir} \
             %{buildroot}%{_fontconfig_confdir}
 
 for f in sans-cjk-ttc serif-cjk-ttc \
-    sans-cjk-jp serif-cjk-jp sans-mono-cjk-jp \
-    sans-cjk-kr serif-cjk-kr sans-mono-cjk-kr \
-    sans-cjk-sc serif-cjk-sc sans-mono-cjk-sc \
-    sans-cjk-tc serif-cjk-tc sans-mono-cjk-tc \
-    sans-cjk-hk sans-mono-cjk-hk \
+    sans-cjk-jp sans-mono-cjk-jp \
+    sans-mono-cjk-kr \
+    sans-mono-cjk-sc \
+    sans-mono-cjk-tc \
+    sans-mono-cjk-hk \
     sans-jp serif-jp \
     sans-kr serif-kr \
     sans-sc serif-sc \
@@ -219,7 +213,7 @@ do
          %{buildroot}%{_fontconfig_confdir}/${fconf}
 done
 
-install -m 0644 -p %{SOURCE3} \
+install -m 0644 -p %{SOURCE23} \
             %{buildroot}%{_fontconfig_templatedir}/%{fontconf2}
 
 ln -s %{_fontconfig_templatedir}/%{fontconf2} \
@@ -230,13 +224,22 @@ ln -s %{_fontconfig_templatedir}/%{fontconf2} \
 
 
 %files common
-%doc NEWS.md HISTORY.md README-formats.md README-third_party.md
+%doc README.md
 %license LICENSE
 %{_fontconfig_templatedir}/%{fontconf2}
 %config(noreplace) %{_fontconfig_confdir}/%{fontconf2}
 
 
 %changelog
+* Thu Nov 23 2023 Peng Wu <pwu@redhat.com> - 20230817-2
+- Add google-noto-sans-cjk-jp-fonts back
+- Resolves: RHEL-13738
+
+* Thu Nov  2 2023 Peng Wu <pwu@redhat.com> - 20230817-1
+- Update Noto CJK to Sans 2.004 and Serif 2.002
+- Drop some Noto CJK Language Specific OTFs sub packages
+- Resolves: RHEL-13738
+
 * Mon Aug 09 2021 Mohan Boddu <mboddu@redhat.com> - 20201206-4
 - Rebuilt for IMA sigs, glibc 2.34, aarch64 flags
   Related: rhbz#1991688
