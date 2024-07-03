@@ -1,8 +1,9 @@
-%global commit0 be6c059ac1587e556e2412b27f5155c8eb3ddbe6
-%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+%global sans_version 2.004
+%global serif_version 2.002
 
 %global fontname google-noto-cjk
 %global fontconf google-noto
+%global fontconf2 65-%{fontconf}-cjk-fonts.conf
 
 %global common_desc \
 Noto CJK fonts, supporting Simplified Chinese, Traditional Chinese, \
@@ -12,19 +13,34 @@ supported for compatibility with CJK standards. \
 %{nil}
 
 Name:           google-noto-cjk-fonts
-Version:        20190416
+Version:        20230817
 Release:        1%{?dist}
 Summary:        Google Noto Sans CJK Fonts
 
 License:        OFL
-URL:            https://github.com/googlei18n/noto-cjk
-Source0:        https://github.com/googlei18n/noto-cjk/archive/%{commit0}.tar.gz#/noto-cjk-%{shortcommit0}.tar.gz
-Source1:        genfontconf.py
-Source2:        genfontconf.sh
+URL:            https://github.com/notofonts/noto-cjk
+Source0:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/03_NotoSansCJK-OTC.zip
+Source1:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/04_NotoSansCJK-OTF.zip
+Source2:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/05_NotoSansCJK-SubsetOTF.zip
+Source3:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/11_NotoSansMonoCJKjp.zip
+Source4:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/12_NotoSansMonoCJKkr.zip
+Source5:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/13_NotoSansMonoCJKsc.zip
+Source6:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/14_NotoSansMonoCJKtc.zip
+Source7:        https://github.com/notofonts/noto-cjk/releases/download/Sans%{sans_version}/15_NotoSansMonoCJKhk.zip
+
+Source10:       https://github.com/notofonts/noto-cjk/releases/download/Serif%{serif_version}/04_NotoSerifCJKOTC.zip
+Source11:       https://github.com/notofonts/noto-cjk/releases/download/Serif%{serif_version}/05_NotoSerifCJKOTF.zip
+Source12:       https://github.com/notofonts/noto-cjk/releases/download/Serif%{serif_version}/06_NotoSerifCJKSubsetOTF.zip
+
+Source21:       genfontconf.py
+Source22:       genfontconf.sh
+Source23:       %{fontconf2}
+
+Source30:       README.md
 
 BuildArch:      noarch
 BuildRequires:  fontpackages-devel
-BuildRequires:  python3-devel
+BuildRequires:  python3
 BuildRequires:  /usr/bin/xmllint
 Requires:       fontpackages-filesystem
 Requires:       google-noto-sans-cjk-ttc-fonts
@@ -154,11 +170,17 @@ The google-noto-%subpkgname-fonts package contains %* fonts. \
 
 
 %prep
-%setup -q -n noto-cjk-%{commit0}
-cp -p %{SOURCE1} %{SOURCE2} .
+%setup -q -c
+
+for zipfile in `ls %{SOURCE1} %{SOURCE2} %{SOURCE3} %{SOURCE4} %{SOURCE5} %{SOURCE6} %{SOURCE7} %{SOURCE10} %{SOURCE11} %{SOURCE12}`;
+do unzip -j $zipfile -x LICENSE;
+done
+
+cp -p %{SOURCE21} %{SOURCE22} .
 # generate the font conf files
 bash -x ./genfontconf.sh
 
+cp -p %{SOURCE30} .
 
 %build
 
@@ -206,15 +228,28 @@ do
          %{buildroot}%{_fontconfig_confdir}/${fconf}
 done
 
+install -m 0644 -p %{SOURCE23} \
+            %{buildroot}%{_fontconfig_templatedir}/%{fontconf2}
+
+ln -s %{_fontconfig_templatedir}/%{fontconf2} \
+     %{buildroot}%{_fontconfig_confdir}/%{fontconf2}
+
+
 %files
 
 
 %files common
-%doc NEWS HISTORY README.formats README.third_party
+%doc README.md
 %license LICENSE
+%{_fontconfig_templatedir}/%{fontconf2}
+%config(noreplace) %{_fontconfig_confdir}/%{fontconf2}
 
 
 %changelog
+* Thu Nov  2 2023 Peng Wu <pwu@redhat.com> - 20230817-1
+- Update Noto CJK to Sans 2.004 and Serif 2.002
+- Resolves: RHEL-29145
+
 * Wed May  8 2019 Peng Wu <pwu@redhat.com> - 20190416-1
 - Update to git commit be6c059
 - Resolves: #1702408
